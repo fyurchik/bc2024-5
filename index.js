@@ -2,7 +2,7 @@ const express = require("express");
 const { Command } = require("commander");
 const fs = require("fs");
 const path = require("path");
-const multer = require("multer"); // Import multer
+const multer = require("multer");
 
 const program = new Command();
 program
@@ -14,11 +14,9 @@ program
 const options = program.opts();
 const app = express();
 
-// Middleware for parsing JSON and URL-encoded form data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Setup multer for parsing multipart/form-data
 const upload = multer();
 
 const cacheDir = path.resolve(options.cache);
@@ -26,7 +24,6 @@ if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir);
 }
 
-// GET /notes/<ім’я нотатки>
 app.get("/notes/:name", (req, res) => {
   const notePath = path.join(cacheDir, `${req.params.name}.txt`);
   if (!fs.existsSync(notePath)) {
@@ -36,7 +33,6 @@ app.get("/notes/:name", (req, res) => {
   res.send(noteText);
 });
 
-// PUT /notes/<ім’я нотатки>
 app.put("/notes/:name", (req, res) => {
   const notePath = path.join(cacheDir, `${req.params.name}.txt`);
   if (!fs.existsSync(notePath)) {
@@ -46,7 +42,6 @@ app.put("/notes/:name", (req, res) => {
   res.sendStatus(200);
 });
 
-// DELETE /notes/<ім’я нотатки>
 app.delete("/notes/:name", (req, res) => {
   const notePath = path.join(cacheDir, `${req.params.name}.txt`);
   if (!fs.existsSync(notePath)) {
@@ -56,7 +51,6 @@ app.delete("/notes/:name", (req, res) => {
   res.sendStatus(200);
 });
 
-// GET /notes
 app.get("/notes", (req, res) => {
   const notes = fs.readdirSync(cacheDir).map((filename) => {
     const noteName = path.parse(filename).name;
@@ -66,7 +60,6 @@ app.get("/notes", (req, res) => {
   res.status(200).json(notes);
 });
 
-// POST /write - Handle multipart/form-data
 app.post("/write", upload.none(), (req, res) => {
   const { note_name, note } = req.body;
 
@@ -81,10 +74,9 @@ app.post("/write", upload.none(), (req, res) => {
   }
 
   fs.writeFileSync(notePath, note);
-  res.sendStatus(201); // Note created
+  res.sendStatus(201);
 });
 
-// Serve the upload form
 app.get("/UploadForm.html", (req, res) => {
   const formHtml = `
     <html>
@@ -102,7 +94,6 @@ app.get("/UploadForm.html", (req, res) => {
   res.status(200).send(formHtml);
 });
 
-// Start the server
 const server = app.listen(options.port, options.host, () => {
   console.log(`Server running at http://${options.host}:${options.port}/`);
 });
